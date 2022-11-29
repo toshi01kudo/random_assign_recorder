@@ -24,5 +24,4 @@ jobs:
     - name: Run flake8 test
       run: |
         pip install flake8
-        cd python_backend/app
         flake8 --max-line-length 150
