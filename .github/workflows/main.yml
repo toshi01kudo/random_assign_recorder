@@ -21,7 +21,13 @@ jobs:
         architecture: 'x64'
     - name: Get Python version
       run: python -V
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install python-dotenv flake8
+    - name: Run python test
+      run: cd test && python -m unittest -v
     - name: Run flake8 test
       run: |
         pip install flake8
-        flake8 --max-line-length 150
+        flake8 --max-line-length 150 --per-file-ignores test/test_random_assign.py:E402
