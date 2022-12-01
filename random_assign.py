@@ -6,7 +6,13 @@ from dotenv import load_dotenv
 
 
 # Main ---
-def main(assign_num=1):
+def main(mode='select', assign_num=1):
+    """
+    mode:
+    - select: メンバーをassign_num数分だけ抽出する (default)
+    - read: 現在のpoolを出力する
+    - reset: .envのメンバープールを作り、アサイン済みプールを空にする
+    """
     logging.basicConfig(level=logging.INFO,
                         format=' %(asctime)s - %(levelname)s - %(message)s')
     logging.info('#=== Start program ===#')
@@ -17,20 +23,9 @@ def main(assign_num=1):
 
     if len(sys.argv) >= 2:
         if sys.argv[1] == 'read':
-            logging.info('#=== Read mode ===#')
-            rar = random_assign_recorder()
-            print(f'Unassigned: {rar.candidate_pool}')
-            print(f'Assigned: {rar.done_pool}')
-            logging.info('#=== Read finished ===#')
-            sys.exit()
+            mode = 'read'
         elif sys.argv[1] == 'init' or sys.argv[1] == 'reset':
-            logging.info('#=== Reset action ===#')
-            rar = random_assign_recorder()
-            rar.file_init()
-            print(f'Unassigned: {rar.candidate_pool}')
-            print(f'Assigned: {rar.done_pool}')
-            logging.info('#=== Reset finished ===#')
-            sys.exit()
+            mode = 'reset'
         elif sys.argv[1] == '-v':
             # unittest から呼ばれてると想定
             pass
@@ -42,41 +37,28 @@ def main(assign_num=1):
                 sys.exit()
 
     rar = random_assign_recorder(assign_num)
-    rar.select()
-
-    logging.info('#=== Finish program ===#')
-    return rar.selected
+    if mode == 'select':
+        logging.info('#=== Select mode ===#')
+        rar.select()
+        logging.info('#=== Select finished ===#')
+        return rar.selected
+    elif mode == 'read':
+        logging.info('#=== Read mode ===#')
+        rar.print()
+        logging.info('#=== Read finished ===#')
+        sys.exit()
+    elif mode == 'reset':
+        logging.info('#=== Reset action ===#')
+        rar.file_init()
+        rar.print()
+        logging.info('#=== Reset finished ===#')
+        sys.exit()
 
 
 # functions ---
-# def get_member_list():
-#     logging.info('#=== Get Member list ===#')
-#     with open('unassigned.txt', 'r', encoding="utf-8") as f:
-#         candidate_pool = f.read().split(',')
-#     with open('assigned.txt', 'r', encoding="utf-8") as f:
-#         done_pool = f.read().split(',')
-#     return candidate_pool, done_pool
-
-
-# def pool_reset():
-#     with open('assigned.txt', 'r', encoding="utf-8") as f:
-#         assigned = f.read()
-#     with open('unassigned.txt', 'w', encoding="utf-8") as f:
-#         f.write(assigned)
-#     with open('assigned.txt', 'w', encoding="utf-8") as f:
-#         f.write('')
-
-
-# def make_pool_text(pool_list):
-#     write_text = ''
-#     for member in pool_list:
-#         write_text += f'{member},'
-#     logging.info(write_text[:-1])
-#     return write_text[:-1]
-
 def filepath_at_repodir(filename1):
     """ リポジトリのルートディレクトリを視点としてファイルパスを指定する関数 """
-    logging.info(f"Filepath: {os.path.abspath(os.path.join(os.path.dirname(__file__), filename1))}")
+    logging.debug(f"Filepath: {os.path.abspath(os.path.join(os.path.dirname(__file__), filename1))}")
     return os.path.abspath(os.path.join(os.path.dirname(__file__), filename1))
 
 
@@ -152,6 +134,11 @@ class random_assign_recorder():
             self.candidate_pool = []
         if self.done_pool == ['']:
             self.done_pool = []
+
+    def print(self):
+        """ 現在の Pool 情報を Print する """
+        print(f'Unassigned: {self.candidate_pool}')
+        print(f'Assigned: {self.done_pool}')
 
     def pop(self):
         """ メンバーを staged_pool へ移動 """
